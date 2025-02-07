@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="LunchCheckApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunch Checker</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+        .message {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body ng-controller="LunchCheckController">
+    <div>
+        <h1>Lunch Checker</h1>
+        <p>Enter items separated by commas:</p>
+        <input type="text" ng-model="lunchItems" placeholder="e.g., rice, chicken, salad">
+        <!-- Note: Empty items (,,) are NOT considered in the count. -->
+        <button ng-click="checkLunch()">Check If Too Much</button>
+        <p class="message" ng-bind="message" style="color: {{messageColor}};"></p>
+    </div>
+
+    <script>
+        (function() {
+            angular.module('LunchCheckApp', [])
+            .controller('LunchCheckController', ['$scope', function($scope) {
+                $scope.lunchItems = "";
+                $scope.message = "";
+                $scope.messageColor = "black";
+
+                $scope.checkLunch = function() {
+                    if (!$scope.lunchItems.trim()) {
+                        $scope.message = "Please enter data first";
+                        $scope.messageColor = "red";
+                        return;
+                    }
+                    
+                    let items = $scope.lunchItems.split(',').filter(item => item.trim() !== "");
+                    
+                    if (items.length === 0) {
+                        $scope.message = "Please enter data first";
+                        $scope.messageColor = "red";
+                    } else if (items.length <= 3) {
+                        $scope.message = "Enjoy!";
+                        $scope.messageColor = "green";
+                    } else {
+                        $scope.message = "Too much!";
+                        $scope.messageColor = "orange";
+                    }
+                };
+            }]);
+        })();
+    </script>
+</body>
+</html>
