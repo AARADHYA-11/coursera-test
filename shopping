@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .list {
+            width: 40%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkgreen;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shopping List</h1>
+    <div class="container">
+        <div class="list">
+            <h2>To Buy</h2>
+            <ul id="toBuyList">
+                <!-- Items will be populated here -->
+            </ul>
+            <p id="toBuyMessage"> </p>
+        </div>
+        <div class="list">
+            <h2>Already Bought</h2>
+            <ul id="boughtList">
+                <!-- Bought items will be moved here -->
+            </ul>
+            <p id="boughtMessage">Nothing bought yet.</p>
+        </div>
+    </div>
+    <script>
+        const toBuyItems = [
+            { name: "Apples", quantity: 5 },
+            { name: "Bread", quantity: 2 },
+            { name: "Milk", quantity: 1 },
+            { name: "Eggs", quantity: 12 },
+            { name: "Rice", quantity: 3 }
+        ];
+        
+        function renderLists() {
+            const toBuyList = document.getElementById("toBuyList");
+            const boughtList = document.getElementById("boughtList");
+            const toBuyMessage = document.getElementById("toBuyMessage");
+            const boughtMessage = document.getElementById("boughtMessage");
+            
+            toBuyList.innerHTML = "";
+            boughtList.innerHTML = "";
+            
+            if (toBuyItems.length === 0) {
+                toBuyMessage.textContent = "Everything is bought!";
+            } else {
+                toBuyMessage.textContent = "";
+                toBuyItems.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `Buy ${item.quantity} ${item.name} 
+                        <button onclick="markAsBought(${index})">Bought</button>`;
+                    toBuyList.appendChild(li);
+                });
+            }
+            
+            if (boughtList.children.length === 0) {
+                boughtMessage.style.display = "block";
+            } else {
+                boughtMessage.style.display = "none";
+            }
+        }
+        
+        function markAsBought(index) {
+            const boughtItem = toBuyItems.splice(index, 1)[0];
+            const boughtList = document.getElementById("boughtList");
+            const li = document.createElement("li");
+            li.textContent = `Bought ${boughtItem.quantity} ${boughtItem.name}`;
+            boughtList.appendChild(li);
+            renderLists();
+        }
+        
+        renderLists();
+    </script>
+</body>
+</html>
