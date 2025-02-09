@@ -1,0 +1,64 @@
+import { useState } from "react";
+import { Button, Input, Card, CardContent } from "@/components/ui";
+
+export default function MenuSearch() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [foundItems, setFoundItems] = useState([]);
+  const [error, setError] = useState("");
+
+  const fetchMenuItems = async () => {
+    if (!searchTerm.trim()) {
+      setFoundItems([]);
+      setError("Nothing found");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://coursera-jhu-default-rtdb.firebaseio.com/menu_items.json");
+      const data = await response.json();
+      const items = data.menu_items || [];
+      
+      const filteredItems = items.filter(item => item.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      if (filteredItems.length === 0) {
+        setError("Nothing found");
+      } else {
+        setError("");
+        setFoundItems(filteredItems);
+      }
+    } catch (error) {
+      setError("Error fetching menu items");
+      console.error(error);
+    }
+  };
+
+  const removeItem = (index) => {
+    setFoundItems(foundItems.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="p-6 max-w-lg mx-auto">
+      <Input 
+        type="text" 
+        placeholder="Search menu descriptions..." 
+        value={searchTerm} 
+        onChange={(e) => setSearchTerm(e.target.value)} 
+      />
+      <Button onClick={fetchMenuItems} className="mt-4">Narrow It Down For Me!</Button>
+      
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+      
+      <div className="mt-6 space-y-4">
+        {foundItems.map((item, index) => (
+          <Card key={item.id || index} className="p-4 flex justify-between items-center">
+            <CardContent>
+              <p><strong>{item.name}</strong> ({item.short_name})</p>
+              <p className="text-sm text-gray-600">{item.description}</p>
+            </CardContent>
+            <Button variant="destructive" onClick={() => removeItem(index)}>Don't want this one!</Button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
