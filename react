@@ -1,0 +1,75 @@
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
+
+const API_URL = "https://restaurant-server.com/menu"; // Replace with actual API URL
+
+const Home = () => (
+  <div className="p-4 text-center">
+    <h1>Welcome to our Restaurant</h1>
+    <Link to="/categories" className="text-blue-500 underline">View Menu Categories</Link>
+  </div>
+);
+
+const Categories = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(data.categories))
+      .catch((err) => console.error("Error fetching categories:", err));
+  }, []);
+
+  return (
+    <div className="p-4">
+      <h2>Menu Categories</h2>
+      <ul>
+        {categories.map((category) => (
+          <li key={category.id}>
+            <Link to={`/items/${category.short_name}`} className="text-blue-500 underline">
+              {category.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const Items = () => {
+  const { category } = useParams();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/items?category=${category}`)
+      .then((res) => res.json())
+      .then((data) => setItems(data.items))
+      .catch((err) => console.error("Error fetching items:", err));
+  }, [category]);
+
+  return (
+    <div className="p-4">
+      <h2>Menu Items for {category.toUpperCase()}</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <strong>{item.name}</strong> - {item.description}
+          </li>
+        ))}
+      </ul>
+      <Link to="/categories" className="text-blue-500 underline">Back to Categories</Link>
+    </div>
+  );
+};
+
+const MenuSearchApp = () => (
+  <Router>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/categories" element={<Categories />} />
+      <Route path="/items/:category" element={<Items />} />
+    </Routes>
+  </Router>
+);
+
+export default MenuSearchApp;
