@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="RestaurantApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant Sign-Up</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 50%; margin: auto; }
+        input, button { display: block; margin-bottom: 10px; padding: 8px; }
+        .error { color: red; }
+        .success { color: green; }
+        img { width: 150px; height: auto; }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+</head>
+<body>
+
+    <nav>
+        <a href="#!/myinfo">My Info</a>
+        <a href="#!/signup">Sign Up</a>
+    </nav>
+
+    <div ng-view></div>
+
+    <script>
+        var app = angular.module("RestaurantApp", ["ngRoute"]);
+
+        // Routing Configuration
+        app.config(function($routeProvider) {
+            $routeProvider
+                .when("/signup", {
+                    template: `
+                        <div class="container">
+                            <h2>Sign Up</h2>
+                            <form name="signupForm" ng-submit="submitForm()">
+                                <label>First Name:</label>
+                                <input type="text" ng-model="user.firstName" required>
+                                
+                                <label>Last Name:</label>
+                                <input type="text" ng-model="user.lastName" required>
+                                
+                                <label>Email:</label>
+                                <input type="email" ng-model="user.email" required>
+                                
+                                <label>Phone Number:</label>
+                                <input type="tel" ng-model="user.phone" required>
+                                
+                                <label>Favorite Menu Number:</label>
+                                <input type="text" ng-model="user.favoriteMenuNumber" ng-blur="validateMenuItem()" required>
+                                <span ng-if="menuError" class="error">No such menu number exists.</span>
+
+                                <button type="submit" ng-disabled="signupForm.$invalid">Submit</button>
+                            </form>
+
+                            <p ng-if="successMessage" class="success">{{ successMessage }}</p>
+                        </div>
+                    `,
+                    controller: "SignupController"
+                })
+                .when("/myinfo", {
+                    template: `
+                        <div class="container">
+                            <h2>My Info</h2>
+                            <div ng-if="user">
+                                <p><strong>First Name:</strong> {{ user.firstName }}</p>
+                                <p><strong>Last Name:</strong> {{ user.lastName }}</p>
+                                <p><strong>Email:</strong> {{ user.email }}</p>
+                                <p><strong>Phone Number:</strong> {{ user.phone }}</p>
+                                <p><strong>Favorite Dish:</strong> {{ favoriteItem.name }}</p>
+                                <img ng-src="{{ favoriteItem.image }}" alt="{{ favoriteItem.name }}">
+                                <p>{{ favoriteItem.description }}</p>
+                            </div>
+                            <div ng-if="!user">
+                                <p>Not Signed Up Yet. <a href="#!/signup">Sign up Now!</a></p>
+                            </div>
+                        </div>
+                    `,
+                    controller: "MyInfoController"
+                })
+                .otherwise({
+                    redirectTo: "/signup"
+                });
+        });
+
+        // User Data Service
+        app.service("UserService", function() {
+            var userData = null;
+            this.saveUser = function(data) { userData = data; };
+            this.getUser = function() { return userData; };
+        });
+
+        // Signup Controller
+        app.controller("SignupController", function($scope, $http, UserService) {
+            $scope.user = {};
+            $scope.menuError = false;
+            $scope.successMessage = "";
+
+            $scope.validateMenuItem = function() {
+                if (!$scope.user.favoriteMenuNumber) return;
+
+                var menuNum = $scope.user.favoriteMenuNumber.charAt(0).toUpperCase();
+                var menuItemIndex = parseInt($scope.user.favoriteMenuNumber.substring(1)) - 1;
+
+                var apiUrl = `https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/${menuNum}/menu_items/${menuItemIndex}.json`;
+
+                $http.get(apiUrl).then(function(response) {
+                    $scope.menuError = response.data === null;
+                });
+            };
+
+            $scope.submitForm = function() {
+                if ($scope.menuError) return;
+                UserService.saveUser($scope.user);
+                $scope.successMessage = "Your information has been saved.";
+            };
+        });
+
+        // My Info Controller
+        app.controller("MyInfoController", function($scope, $http, UserService) {
+            $scope.user = UserService.getUser();
+
+            if ($scope.user) {
+                var menuNum = $scope.user.favoriteMenuNumber.charAt(0).toUpperCase();
+                var menuItemIndex = parseInt($scope.user.favoriteMenuNumber.substring(1)) - 1;
+
+                var apiUrl = `https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/${menuNum}/menu_items/${menuItemIndex}.json`;
+
+                $http.get(apiUrl).then(function(response) {
+                    $scope.favoriteItem = response.data || {};
+                });
+            }
+        });
+    </script>
+</body>
+</html>
